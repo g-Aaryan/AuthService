@@ -71,3 +71,26 @@ export async function revokeAllSessions(userId: string) {
         }
     );
 }
+
+export async function updateUserPassword(userId: string, passwordHash: string) {
+    return await User.findByIdAndUpdate(
+        userId,
+        {
+            password: passwordHash
+        },
+        {
+            new: true
+        }
+    );
+}
+
+export async function findActiveSessionsByUserId(userId: string) {
+    return await Session.find({
+        userId,
+        isRevoked: false
+    });
+}
+
+export async function findSessionById(sessionId: string) {
+    return await Session.findById(sessionId);
+}

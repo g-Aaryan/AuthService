@@ -1,10 +1,10 @@
-import { RegisterDto, VerifyEmailDto, LoginDto } from "../validators/user.validator";
-import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession, revokeAllSessions } from "../repositories/auth.repository";
+import { RegisterDto, VerifyEmailDto, LoginDto, ResendOtpDto, ForgotPasswordDto, ResetPasswordDto } from "../validators/user.validator";
+import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession, revokeAllSessions, updateUserPassword, findActiveSessionsByUserId, findSessionById } from "../repositories/auth.repository";
 import { BadRequestError } from "../utils/errors/app.error";
 import { comparePassword, hashPassword } from "../utils/password.utils";
 import { compareOtp, generateOtp, hashOtp } from "../utils/otp.utils";
 import { deleteOtp, getOtp, incrementOtpAttempts, storeOtp } from "../utils/redis.utils";
-import { sendVerificationOtp } from "../utils/mail.utils";
+import { sendForgotPasswordOtp, sendVerificationOtp } from "../utils/mail.utils";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt.utils";
 import { hashToken } from "../utils/token.utlis";
 
@@ -39,7 +39,7 @@ export async function registerUser(data:RegisterDto){
     const otp = generateOtp();
     const otpHash = hashOtp(otp);
 
-    await storeOtp(user.email, otpHash);
+    await storeOtp(user.id, otpHash);
 
     await sendVerificationOtp(user.email, otp);
 
@@ -215,4 +215,90 @@ export async function logoutUser(refreshToken?: string) {
 
 export async function logoutAllDevices(userId: string) {
     await revokeAllSessions(userId);
+}
+
+export async function resendVerificationOtp(data: ResendOtpDto) {
+    const user = await findUserByEmail(data.email);
+    if (!user) {
+        throw new BadRequestError("User not found");
+    }
+    if (user.isEmailVerified) {
+        throw new BadRequestError("Email already verified");
+    }
+
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    await storeOtp(user.id, otpHash);
+
+    await sendVerificationOtp(user.email, otp);
+
+    return {
+        message: "Verification OTP sent successfully"
+    };
+}
+
+export async function forgotPassword(data: ForgotPasswordDto) {
+    const user = await findUserByEmail(data.email);
+    if (!user) {
+        throw new BadRequestError("User not found");
+    }
+
+    const otp = generateOtp();
+    const otpHash = hashOtp(otp);
+    await storeOtp(user.id, otpHash);
+
+    await sendForgotPasswordOtp(user.email, otp);
+
+    return {
+        message: "Password reset OTP sent successfully"
+    };
+}
+
+export async function resetPassword(data: ResetPasswordDto) {
+    const user = await findUserByEmail(data.email);
+    if (!user) {
+        throw new BadRequestError("User not found");
+    }
+
+    const otpData = await getOtp(user.id);
+    if (!otpData) {
+        throw new BadRequestError("OTP expired");
+    }
+
+    if (otpData.attempts >= 5) {
+        throw new BadRequestError("Too many attempts");
+    }
+
+    const isValid = compareOtp(data.otp, otpData.otpHash);
+    if (!isValid) {
+        await incrementOtpAttempts(user.id);
+        throw new BadRequestError("Invalid OTP");
+    }
+
+    const hashedPassword = await hashPassword(data.password);
+    await updateUserPassword(user.id, hashedPassword);
+
+    await deleteOtp(user.id);
+    await revokeAllSessions(user.id);
+
+    return {
+        message: "Password reset successfully"
+    };
+}
+
+export async function getActiveSessions(userId: string) {
+    return await findActiveSessionsByUserId(userId);
+}
+
+export async function revokeUserSession(userId: string, sessionId: string) {
+    const session = await findSessionById(sessionId);
+    if (!session) {
+        throw new BadRequestError("Session not found");
+    }
+
+    if (session.userId.toString() !== userId) {
+        throw new BadRequestError("Unauthorized to revoke this session");
+    }
+
+    await revokeSession(sessionId);
 }

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { loginUser, logoutUser, logoutAllDevices, refreshAccessToken, registerUser, verifyUserEmail } from "../services/auth.service";
+import { loginUser, logoutUser, logoutAllDevices, refreshAccessToken, registerUser, verifyUserEmail, resendVerificationOtp, forgotPassword, resetPassword, getActiveSessions, revokeUserSession } from "../services/auth.service";
 import { BadRequestError } from "../utils/errors/app.error";
 
 export async function register( req: Request,res: Response,next: NextFunction) {
@@ -110,5 +110,78 @@ export async function logoutAll(
     return res.status(200).json({
         success: true,
         message: "Logged out from all devices successfully"
+    });
+}
+
+export async function resendOtp(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const response = await resendVerificationOtp(req.body);
+    return res.status(200).json({
+        success: true,
+        message: response.message
+    });
+}
+
+export async function forgotPasswordController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const response = await forgotPassword(req.body);
+    return res.status(200).json({
+        success: true,
+        message: response.message
+    });
+}
+
+export async function resetPasswordController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const response = await resetPassword(req.body);
+    return res.status(200).json({
+        success: true,
+        message: response.message
+    });
+}
+
+export async function getSessionsController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const userId = req.user?.id;
+    if (!userId) {
+        throw new BadRequestError("User ID not found in token");
+    }
+
+    const sessions = await getActiveSessions(userId);
+    return res.status(200).json({
+        success: true,
+        message: "Active sessions retrieved successfully",
+        data: sessions
+    });
+}
+
+export async function revokeSessionController(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const userId = req.user?.id;
+    if (!userId) {
+        throw new BadRequestError("User ID not found in token");
+    }
+
+    const sessionId = req.params.sessionId;
+    await revokeUserSession(userId, sessionId);
+
+    return res.status(200).json({
+        success: true,
+        message: "Session revoked successfully"
     });
 }
