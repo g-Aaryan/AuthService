@@ -38,12 +38,14 @@ export async function findSessionByRefreshToken(
 }
 export async function updateSessionRefreshToken(
     sessionId: string,
-    refreshToken: string
+    newRefreshToken: string,
+    oldRefreshToken: string
 ) {
     return await Session.findByIdAndUpdate(
         sessionId,
         {
-            refreshToken
+            refreshToken: newRefreshToken,
+            $push: { usedRefreshTokens: oldRefreshToken }
         },
         {
             new: true
@@ -93,4 +95,12 @@ export async function findActiveSessionsByUserId(userId: string) {
 
 export async function findSessionById(sessionId: string) {
     return await Session.findById(sessionId);
+}
+
+export async function findUserByGoogleId(googleId: string) {
+    return await User.findOne({ googleId });
+}
+
+export async function findSessionByUsedRefreshToken(hashedToken: string) {
+    return await Session.findOne({ usedRefreshTokens: hashedToken });
 }

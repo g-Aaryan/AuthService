@@ -3,6 +3,7 @@ import mongoose, { Document } from "mongoose";
 export interface ISession extends Document {
     userId: mongoose.Types.ObjectId;
     refreshToken: string;
+    usedRefreshTokens: string[];
     ipAddress: string;
     userAgent: string;
     isRevoked: boolean;
@@ -20,6 +21,10 @@ const sessionSchema = new mongoose.Schema<ISession>(
         refreshToken: {
             type: String,
             required: true
+        },
+        usedRefreshTokens: {
+            type: [String],
+            default: []
         },
         ipAddress: {
             type: String,

@@ -1,5 +1,6 @@
 import { RegisterDto, VerifyEmailDto, LoginDto, ResendOtpDto, ForgotPasswordDto, ResetPasswordDto } from "../validators/user.validator";
-import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession, revokeAllSessions, updateUserPassword, findActiveSessionsByUserId, findSessionById } from "../repositories/auth.repository";
+import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession, revokeAllSessions, updateUserPassword, findActiveSessionsByUserId, findSessionById, findUserByGoogleId, findSessionByUsedRefreshToken } from "../repositories/auth.repository";
+import { serverconfig } from "../config";
 import { BadRequestError } from "../utils/errors/app.error";
 import { comparePassword, hashPassword } from "../utils/password.utils";
 import { compareOtp, generateOtp, hashOtp } from "../utils/otp.utils";
@@ -100,13 +101,40 @@ export async function loginUser(
         throw new BadRequestError("Invalid credentials");
     if (!user.isEmailVerified)
         throw new BadRequestError("Email not verified");
+
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+        throw new BadRequestError("Account is temporarily locked. Try again later.");
+    }
+
+    if (!user.password) {
+        user.loginAttempts += 1;
+        if (user.loginAttempts >= 5) {
+            user.lockUntil = Date.now() + 15 * 60 * 1000;
+        }
+        await user.save();
+        throw new BadRequestError("Invalid credentials");
+    }
+
     const isPasswordCorrect =
         await comparePassword(
             data.password,
             user.password
         );
-    if (!isPasswordCorrect)
+
+    if (!isPasswordCorrect) {
+        user.loginAttempts += 1;
+        if (user.loginAttempts >= 5) {
+            user.lockUntil = Date.now() + 15 * 60 * 1000;
+        }
+        await user.save();
         throw new BadRequestError("Invalid credentials");
+    }
+
+    if (user.loginAttempts > 0 || user.lockUntil) {
+        user.loginAttempts = 0;
+        user.lockUntil = undefined;
+        await user.save();
+    }
     
     const payload = {
         id: user.id,
@@ -158,10 +186,16 @@ export async function refreshAccessToken(refreshToken?: string){
             hashedToken
         );
 
-    if (!session)
+    if (!session) {
+        const replayedSession = await findSessionByUsedRefreshToken(hashedToken);
+        if (replayedSession) {
+            await revokeAllSessions(replayedSession.userId.toString());
+            throw new BadRequestError("Token replay detected. All sessions revoked for security.");
+        }
         throw new BadRequestError(
             "Session not found"
         );
+    }
 
     const newPayload = {
         id: payload.id,
@@ -175,12 +209,13 @@ export async function refreshAccessToken(refreshToken?: string){
     const newRefreshToken =
         generateRefreshToken(newPayload);
 
-    const hashedRefreshToken =
+    const hashedNewRefreshToken =
         hashToken(newRefreshToken);
 
     await updateSessionRefreshToken(
         session.id,
-        hashedRefreshToken
+        hashedNewRefreshToken,
+        hashedToken
     );
 
     return {
@@ -301,4 +336,95 @@ export async function revokeUserSession(userId: string, sessionId: string) {
     }
 
     await revokeSession(sessionId);
+}
+
+export async function googleLoginService(code: string, ipAddress: string, userAgent: string) {
+    // 1. Exchange code for Google access token
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            code,
+            client_id: serverconfig.GOOGLE_CLIENT_ID,
+            client_secret: serverconfig.GOOGLE_CLIENT_SECRET,
+            redirect_uri: serverconfig.GOOGLE_REDIRECT_URI,
+            grant_type: "authorization_code"
+        }).toString()
+    });
+
+    if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        throw new BadRequestError(`Failed to exchange Google OAuth code: ${errorText}`);
+    }
+
+    const tokenData = await tokenResponse.json() as { access_token: string };
+
+    // 2. Fetch user profile info from Google
+    const profileResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: {
+            Authorization: `Bearer ${tokenData.access_token}`
+        }
+    });
+
+    if (!profileResponse.ok) {
+        throw new BadRequestError("Failed to retrieve Google user profile info");
+    }
+
+    const profileData = await profileResponse.json() as {
+        id: string;
+        email: string;
+        name: string;
+        picture?: string;
+    };
+
+    const { id, email, name, picture } = profileData;
+
+    // 3. Find User by googleId
+    let user = await findUserByGoogleId(id);
+
+    if (!user) {
+        // Find User by email
+        user = await findUserByEmail(email);
+
+        if (user) {
+            // Link account if email matches
+            user.googleId = id;
+            if (picture) user.avatar = picture;
+            await user.save();
+        } else {
+            // Create user
+            user = await createUser({
+                name,
+                email,
+                googleId: id,
+                avatar: picture,
+                isEmailVerified: true // Google pre-verified
+            });
+        }
+    }
+
+    // 4. Generate tokens & create Session
+    const payload = {
+        id: user.id,
+        email: user.email,
+        role: user.role
+    };
+
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+    const hashedRefreshToken = hashToken(refreshToken);
+
+    await createSession({
+        userId: user.id,
+        refreshToken: hashedRefreshToken,
+        ipAddress,
+        userAgent
+    });
+
+    return {
+        accessToken,
+        refreshToken
+    };
 }

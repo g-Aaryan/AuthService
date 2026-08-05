@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { loginUser, logoutUser, logoutAllDevices, refreshAccessToken, registerUser, verifyUserEmail, resendVerificationOtp, forgotPassword, resetPassword, getActiveSessions, revokeUserSession } from "../services/auth.service";
+import { loginUser, logoutUser, logoutAllDevices, refreshAccessToken, registerUser, verifyUserEmail, resendVerificationOtp, forgotPassword, resetPassword, getActiveSessions, revokeUserSession, googleLoginService } from "../services/auth.service";
+import { serverconfig } from "../config";
 import { BadRequestError } from "../utils/errors/app.error";
 
 export async function register( req: Request,res: Response,next: NextFunction) {
@@ -183,5 +184,46 @@ export async function revokeSessionController(
     return res.status(200).json({
         success: true,
         message: "Session revoked successfully"
+    });
+}
+
+export async function googleLoginRedirect(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${serverconfig.GOOGLE_CLIENT_ID}&redirect_uri=${serverconfig.GOOGLE_REDIRECT_URI}&response_type=code&scope=profile%20email`;
+    return res.redirect(url);
+}
+
+export async function googleLoginCallback(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const code = req.query.code as string;
+    if (!code) {
+        throw new BadRequestError("OAuth code is missing");
+    }
+
+    const response = await googleLoginService(
+        code,
+        req.ip || "",
+        req.get("user-agent") || ""
+    );
+
+    res.cookie("refreshToken", response.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json({
+        success: true,
+        message: "Google login successful",
+        data: {
+            accessToken: response.accessToken
+        }
     });
 }

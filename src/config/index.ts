@@ -6,6 +6,9 @@ type Serveconfig ={
     REFRESH_TOKEN_SECRET:string
     EMAIL_USER:string
     EMAIL_PASSWORD:string
+    GOOGLE_CLIENT_ID:string
+    GOOGLE_CLIENT_SECRET:string
+    GOOGLE_REDIRECT_URI:string
 }
 
 function loadenv(){
@@ -22,4 +25,7 @@ export const serverconfig:Serveconfig={
     REFRESH_TOKEN_SECRET:process.env.REFRESH_TOKEN_SECRET||"default_refresh_token_secret",
     EMAIL_USER:process.env.EMAIL_USER||"default_email_user",
     EMAIL_PASSWORD:process.env.EMAIL_PASSWORD||"default_email_password",
+    GOOGLE_CLIENT_ID:process.env.GOOGLE_CLIENT_ID||"default_google_client_id",
+    GOOGLE_CLIENT_SECRET:process.env.GOOGLE_CLIENT_SECRET||"default_google_client_secret",
+    GOOGLE_REDIRECT_URI:process.env.GOOGLE_REDIRECT_URI||"http://localhost:3008/api/v1/auth/google/callback",
 }

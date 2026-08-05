@@ -1,5 +1,8 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import cors from 'cors';
+import compression from 'compression';
 import { serverconfig } from './config';
 import v1router from './router/v1/index.router';
 import v2router from './router/v2/index.router';
@@ -9,6 +12,9 @@ import { attachCorrelationIdMiddleware } from './middlewares/correlation.middlew
 import { connectDB } from './config/db.config';
 const app = express();
 
+app.use(helmet());
+app.use(cors({ origin: true, credentials: true }));
+app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
 

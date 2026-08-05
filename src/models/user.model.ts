@@ -3,9 +3,13 @@ import mongoose, { Document } from "mongoose";
 export interface IUser extends Document {
     name: string;
     email: string;
-    password: string;
+    password?: string;
     role: "USER" | "ADMIN";
     isEmailVerified: boolean;
+    googleId?: string;
+    avatar?: string;
+    loginAttempts: number;
+    lockUntil?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -26,7 +30,7 @@ const userSchema = new mongoose.Schema<IUser>(
         },
         password: {
             type: String,
-            required: true
+            required: false
         },
         role: {
             type: String,
@@ -36,6 +40,20 @@ const userSchema = new mongoose.Schema<IUser>(
         isEmailVerified: {
             type: Boolean,
             default: false
+        },
+        googleId: {
+            type: String
+        },
+        avatar: {
+            type: String
+        },
+        loginAttempts: {
+            type: Number,
+            required: true,
+            default: 0
+        },
+        lockUntil: {
+            type: Number
         },
     },
     {
