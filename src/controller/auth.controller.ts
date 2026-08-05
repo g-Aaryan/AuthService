@@ -1,3 +1,4 @@
+/// <reference path="../types/express.d.ts" />
 import { Request, Response, NextFunction } from "express";
 import { loginUser, logoutUser, logoutAllDevices, refreshAccessToken, registerUser, verifyUserEmail, resendVerificationOtp, forgotPassword, resetPassword, getActiveSessions, revokeUserSession, googleLoginService } from "../services/auth.service";
 import { serverconfig } from "../config";
@@ -192,6 +193,7 @@ export async function googleLoginRedirect(
     res: Response,
     next: NextFunction
 ) {
+    console.log("Google login redirect request received");
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${serverconfig.GOOGLE_CLIENT_ID}&redirect_uri=${serverconfig.GOOGLE_REDIRECT_URI}&response_type=code&scope=profile%20email`;
     return res.redirect(url);
 }
