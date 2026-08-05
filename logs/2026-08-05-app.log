@@ -313,3 +313,16 @@
 {"level":"info","message":"Validating request body","timestamp":"08-05-2026 15:42:32","correlationId":"42ff4c99-93e5-4c2b-bd88-0d1c04be54ef","data":{}}
 {"level":"info","message":"Request body is valid","timestamp":"08-05-2026 15:42:32","correlationId":"42ff4c99-93e5-4c2b-bd88-0d1c04be54ef","data":{}}
 {"level":"warn","message":"MongoDB disconnected","timestamp":"08-05-2026 15:45:45","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"server is listening on the port 3008","timestamp":"08-05-2026 16:01:58","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:01:58","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:01:58","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Database connection established successfully","timestamp":"08-05-2026 16:01:58","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Validating request body","timestamp":"08-05-2026 16:02:53","correlationId":"d4779171-af60-4d93-88f7-b2fc58814138","data":{}}
+{"level":"info","message":"Request body is valid","timestamp":"08-05-2026 16:02:53","correlationId":"d4779171-af60-4d93-88f7-b2fc58814138","data":{}}
+{"level":"info","message":"Validating request body","timestamp":"08-05-2026 16:03:32","correlationId":"de0d0a76-c15d-4c48-a0cb-758c472fa2e8","data":{}}
+{"level":"info","message":"Request body is valid","timestamp":"08-05-2026 16:03:32","correlationId":"de0d0a76-c15d-4c48-a0cb-758c472fa2e8","data":{}}
+{"level":"info","message":"Validating request body","timestamp":"08-05-2026 16:03:34","correlationId":"b350816f-a985-429f-a76f-45d29127f9fb","data":{}}
+{"level":"info","message":"Request body is valid","timestamp":"08-05-2026 16:03:34","correlationId":"b350816f-a985-429f-a76f-45d29127f9fb","data":{}}
+{"level":"info","message":"Validating request body","timestamp":"08-05-2026 16:03:36","correlationId":"59849f13-6ef8-46e2-9024-fbd780801368","data":{}}
+{"level":"info","message":"Request body is valid","timestamp":"08-05-2026 16:03:36","correlationId":"59849f13-6ef8-46e2-9024-fbd780801368","data":{}}
+{"level":"warn","message":"MongoDB disconnected","timestamp":"08-05-2026 16:03:43","correlationId":"unknown-error-while-creating-correlation-id","data":{}}

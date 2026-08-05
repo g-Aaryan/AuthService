@@ -1,3 +1,4 @@
+import { Session } from "../models/session.model";
 import { IUser, User } from "../models/user.model";
 
 export async function createUser(data: Partial<IUser>){
@@ -18,4 +19,12 @@ export async function verifyUser(userId: string){
             new: true
         }
     );
+}
+export async function createSession(data: {
+    userId: string;
+    refreshToken: string;
+    ipAddress: string;
+    userAgent: string;
+}) {
+    return await Session.create(data);
 }

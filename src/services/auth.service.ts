@@ -1,10 +1,12 @@
-import { RegisterDto, VerifyEmailDto } from "../validators/user.validator";
-import { findUserByEmail,createUser, verifyUser } from "../repositories/auth.repository";
+import { RegisterDto, VerifyEmailDto, LoginDto } from "../validators/user.validator";
+import { findUserByEmail,createUser, verifyUser, createSession } from "../repositories/auth.repository";
 import { BadRequestError } from "../utils/errors/app.error";
-import { hashPassword } from "../utils/password.utils";
+import { comparePassword, hashPassword } from "../utils/password.utils";
 import { compareOtp, generateOtp, hashOtp } from "../utils/otp.utils";
 import { deleteOtp, getOtp, incrementOtpAttempts, storeOtp } from "../utils/redis.utils";
 import { sendVerificationOtp } from "../utils/mail.utils";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt.utils";
+import { hashToken } from "../utils/token.utlis";
 
 
 export async function registerUser(data:RegisterDto){
@@ -85,5 +87,51 @@ export async function verifyUserEmail(data: VerifyEmailDto) {
     return {
         message:
             "Email verified successfully"
+    };
+}
+
+export async function loginUser(
+    data: LoginDto,
+    ipAddress: string,
+    userAgent: string
+) {
+    const user = await findUserByEmail(data.email);
+    if (!user)
+        throw new BadRequestError("Invalid credentials");
+    if (!user.isEmailVerified)
+        throw new BadRequestError("Email not verified");
+    const isPasswordCorrect =
+        await comparePassword(
+            data.password,
+            user.password
+        );
+    if (!isPasswordCorrect)
+        throw new BadRequestError("Invalid credentials");
+    
+    const payload = {
+        id: user.id,
+        email: user.email,
+        role: user.role
+    };
+
+    const accessToken =
+        generateAccessToken(payload);
+
+    const refreshToken =
+        generateRefreshToken(payload);
+
+    const hashedRefreshToken =hashToken(refreshToken);
+
+    const session = await createSession({
+        userId: user.id,
+        refreshToken: hashedRefreshToken,
+        ipAddress,
+        userAgent
+    });
+
+    return {
+        accessToken,
+        refreshToken,
+        session
     };
 }

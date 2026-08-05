@@ -26,5 +26,11 @@ export const verifyEmailSchema = z.object({
         .length(6, "OTP must be 6 digits")
 });
 
+export const loginSchema = z.object({
+    email: z.email().toLowerCase(),
+    password: z.string().min(8)
+});
+
+export type LoginDto = z.infer<typeof loginSchema>;
 export type VerifyEmailDto = z.infer<typeof verifyEmailSchema>;
 export type RegisterDto = z.infer<typeof registerSchema>;
