@@ -3,4 +3,5 @@ node_modules/
 dist/
 IMPLEMENTATION_STATUS.md
 logs/
+*.logs
 API_DOCUMENTATION.md
