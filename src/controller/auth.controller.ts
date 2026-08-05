@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { loginUser, logoutUser, refreshAccessToken, registerUser, verifyUserEmail } from "../services/auth.service";
+import { loginUser, logoutUser, logoutAllDevices, refreshAccessToken, registerUser, verifyUserEmail } from "../services/auth.service";
+import { BadRequestError } from "../utils/errors/app.error";
 
 export async function register( req: Request,res: Response,next: NextFunction) {
         const response = await registerUser(req.body);
@@ -85,5 +86,29 @@ export async function logout(
     return res.status(200).json({
         success: true,
         message: "Logged out successfully"
+    });
+}
+
+export async function logoutAll(
+    req: Request,
+    res: Response,
+    next: NextFunction
+) {
+    const userId = req.user?.id;
+    if (!userId) {
+        throw new BadRequestError("User not found in token");
+    }
+
+    await logoutAllDevices(userId);
+
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    });
+
+    return res.status(200).json({
+        success: true,
+        message: "Logged out from all devices successfully"
     });
 }

@@ -341,3 +341,5 @@
 {"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:29:04","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
 {"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:29:27","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
 {"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:29:27","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:56:14","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:56:14","correlationId":"unknown-error-while-creating-correlation-id","data":{}}

@@ -1,5 +1,5 @@
 import { RegisterDto, VerifyEmailDto, LoginDto } from "../validators/user.validator";
-import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession } from "../repositories/auth.repository";
+import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession, revokeAllSessions } from "../repositories/auth.repository";
 import { BadRequestError } from "../utils/errors/app.error";
 import { comparePassword, hashPassword } from "../utils/password.utils";
 import { compareOtp, generateOtp, hashOtp } from "../utils/otp.utils";
@@ -211,4 +211,8 @@ export async function logoutUser(refreshToken?: string) {
     }
 
     await revokeSession(session.id);
+}
+
+export async function logoutAllDevices(userId: string) {
+    await revokeAllSessions(userId);
 }

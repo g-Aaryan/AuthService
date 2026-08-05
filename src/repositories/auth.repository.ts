@@ -60,3 +60,14 @@ export async function revokeSession(
         }
     );
 }
+export async function revokeAllSessions(userId: string) {
+    return await Session.updateMany(
+        {
+            userId,
+            isRevoked: false
+        },
+        {
+            isRevoked: true
+        }
+    );
+}
