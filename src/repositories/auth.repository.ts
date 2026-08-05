@@ -28,3 +28,35 @@ export async function createSession(data: {
 }) {
     return await Session.create(data);
 }
+export async function findSessionByRefreshToken(
+    refreshToken: string
+){
+    return await Session.findOne({
+        refreshToken,
+        isRevoked: false
+    });
+}
+export async function updateSessionRefreshToken(
+    sessionId: string,
+    refreshToken: string
+) {
+    return await Session.findByIdAndUpdate(
+        sessionId,
+        {
+            refreshToken
+        },
+        {
+            new: true
+        }
+    );
+}
+export async function revokeSession(
+    sessionId: string
+) {
+    return await Session.findByIdAndUpdate(
+        sessionId,
+        {
+            isRevoked: true
+        }
+    );
+}

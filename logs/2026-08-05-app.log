@@ -326,3 +326,18 @@
 {"level":"info","message":"Validating request body","timestamp":"08-05-2026 16:03:36","correlationId":"59849f13-6ef8-46e2-9024-fbd780801368","data":{}}
 {"level":"info","message":"Request body is valid","timestamp":"08-05-2026 16:03:36","correlationId":"59849f13-6ef8-46e2-9024-fbd780801368","data":{}}
 {"level":"warn","message":"MongoDB disconnected","timestamp":"08-05-2026 16:03:43","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"server is listening on the port 3008","timestamp":"08-05-2026 16:17:59","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:17:59","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:17:59","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Database connection established successfully","timestamp":"08-05-2026 16:17:59","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Validating request body","timestamp":"08-05-2026 16:18:26","correlationId":"724e70e5-a3bd-4fdd-80ec-2ec9c3854fe9","data":{}}
+{"level":"info","message":"Request body is valid","timestamp":"08-05-2026 16:18:26","correlationId":"724e70e5-a3bd-4fdd-80ec-2ec9c3854fe9","data":{}}
+{"level":"warn","message":"MongoDB disconnected","timestamp":"08-05-2026 16:19:31","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:28:34","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:28:34","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:28:49","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:28:49","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:29:04","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:29:04","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to redis successfully","timestamp":"08-05-2026 16:29:27","correlationId":"unknown-error-while-creating-correlation-id","data":{}}
+{"level":"info","message":"Connected to mongodb successfully","timestamp":"08-05-2026 16:29:27","correlationId":"unknown-error-while-creating-correlation-id","data":{}}

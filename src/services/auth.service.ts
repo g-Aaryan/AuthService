@@ -1,11 +1,11 @@
 import { RegisterDto, VerifyEmailDto, LoginDto } from "../validators/user.validator";
-import { findUserByEmail,createUser, verifyUser, createSession } from "../repositories/auth.repository";
+import { findUserByEmail,createUser, verifyUser, createSession, findSessionByRefreshToken,updateSessionRefreshToken, revokeSession } from "../repositories/auth.repository";
 import { BadRequestError } from "../utils/errors/app.error";
 import { comparePassword, hashPassword } from "../utils/password.utils";
 import { compareOtp, generateOtp, hashOtp } from "../utils/otp.utils";
 import { deleteOtp, getOtp, incrementOtpAttempts, storeOtp } from "../utils/redis.utils";
 import { sendVerificationOtp } from "../utils/mail.utils";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.utils";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt.utils";
 import { hashToken } from "../utils/token.utlis";
 
 
@@ -134,4 +134,81 @@ export async function loginUser(
         refreshToken,
         session
     };
+}
+export async function refreshAccessToken(refreshToken?: string){
+    if (!refreshToken) {
+        throw new BadRequestError("Refresh token is missing");
+    }
+
+    let payload: any;
+    try {
+        payload = verifyRefreshToken(refreshToken);
+    } catch (err) {
+        throw new BadRequestError("Invalid refresh token");
+    }
+    if (!payload){
+        throw new BadRequestError(
+            "Invalid refresh token"
+        )
+    }
+    const hashedToken =hashToken(refreshToken);
+
+    const session =
+        await findSessionByRefreshToken(
+            hashedToken
+        );
+
+    if (!session)
+        throw new BadRequestError(
+            "Session not found"
+        );
+
+    const newPayload = {
+        id: payload.id,
+        email: payload.email,
+        role: payload.role
+    };
+
+    const accessToken =
+        generateAccessToken(newPayload);
+
+    const newRefreshToken =
+        generateRefreshToken(newPayload);
+
+    const hashedRefreshToken =
+        hashToken(newRefreshToken);
+
+    await updateSessionRefreshToken(
+        session.id,
+        hashedRefreshToken
+    );
+
+    return {
+        accessToken,
+        refreshToken: newRefreshToken
+    };
+}
+
+export async function logoutUser(refreshToken?: string) {
+    if (!refreshToken) {
+        throw new BadRequestError("Refresh token is missing");
+    }
+
+    let payload: any;
+    try {
+        payload = verifyRefreshToken(refreshToken);
+    } catch (err) {
+        throw new BadRequestError("Invalid refresh token");
+    }
+    if (!payload) {
+        throw new BadRequestError("Invalid refresh token");
+    }
+
+    const hashedToken = hashToken(refreshToken);
+    const session = await findSessionByRefreshToken(hashedToken);
+    if (!session) {
+        throw new BadRequestError("Session not found");
+    }
+
+    await revokeSession(session.id);
 }
