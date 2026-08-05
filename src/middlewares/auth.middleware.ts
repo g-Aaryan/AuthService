@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt.utils";
-import { UnauthorizedError } from "../utils/errors/app.error";
+import { ForbiddenError, UnauthorizedError } from "../utils/errors/app.error";
 
 export const authenticateJWT = (
     req: Request,
@@ -27,4 +27,18 @@ export const authenticateJWT = (
     } catch (error) {
         throw new UnauthorizedError("Invalid or expired access token");
     }
+};
+
+export const authorize = (allowedRoles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (!req.user) {
+            throw new UnauthorizedError("Unauthorized");
+        }
+
+        if (!allowedRoles.includes(req.user.role)) {
+            throw new ForbiddenError("Forbidden: Access is denied");
+        }
+
+        next();
+    };
 };
